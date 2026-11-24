@@ -1,0 +1,106 @@
+digraph NeuralNetworkTestExecutor {
+    graph [
+        rankdir=LR,
+        bgcolor="white",
+        pad=0.25,
+        nodesep=0.42,
+        ranksep=1.0,
+        splines=true,
+        fontname="Arial",
+        label="NeuralNetworkTestExecutor connection graph\nArrows illustrate synapse connections",
+        labelloc=t,
+        fontsize=20
+    ];
+    node [
+        shape=ellipse,
+        style=filled,
+        fillcolor="#ffffff",
+        color="#475569",
+        penwidth=1.5,
+        fontname="Arial",
+        fontsize=12,
+        width=0.8,
+        height=0.48,
+        fixedsize=true
+    ];
+    edge [color="#64748b", penwidth=1.25, arrowsize=0.7];
+
+    subgraph cluster_input {
+        label="input Neurons";
+        color="#60a5fa";
+        fillcolor="#eff6ff";
+        style="rounded,filled";
+        penwidth=1.5;
+        i0 [label="0"];
+        i1 [label="1"];
+        { rank=same; i0; i1; }
+    }
+
+    subgraph cluster_reservoir {
+        label="reservoir Neurons";
+        color="#34d399";
+        fillcolor="#ecfdf5";
+        style="rounded,filled";
+        penwidth=1.5;
+        r0 [label="0"];
+        r1 [label="1"];
+        r2 [label="2"];
+        r3 [label="3"];
+        r4 [label="4"];
+        r5 [label="5"];
+        r6 [label="6"];
+        r7 [label="7"];
+        r8 [label="8"];
+        r9 [label="9"];
+        { rank=same; r0; r1; r2; r3; r4; r5; r6; r7; r8; r9; }
+    }
+
+    subgraph cluster_output {
+        label="output Neurons";
+        color="#fbbf24";
+        fillcolor="#fffbeb";
+        style="rounded,filled";
+        penwidth=1.5;
+        o0 [label="0"];
+        o1 [label="1"];
+        { rank=same; o0; o1; }
+    }
+
+    i0 -> r3;
+    i0 -> r7;
+    i1 -> r7;
+    i1 -> r5;
+
+    r0 -> r3;
+    r0 -> r7;
+    r0 -> r5;
+    r1 -> r4;
+    r1 -> r5;
+    r1 -> r9;
+    r1 -> r0;
+    r2 -> r6;
+    r2 -> r5;
+    r2 -> r3;
+    r2 -> r7;
+    r3 -> r5;
+    r3 -> r7;
+    r3 -> r6;
+    r4 -> r1;
+    r4 -> r7;
+    r4 -> r2;
+    r4 -> r9;
+    r5 -> r0;
+    r5 -> r2;
+    r5 -> r7;
+    r6 -> r1;
+    r7 -> r2;
+    r7 -> r5;
+    r8 -> r4;
+    r8 -> r7;
+    r9 -> r8;
+    r9 -> r2;
+    r9 -> r5;
+
+    r3 -> o0;
+    r8 -> o1;
+}
