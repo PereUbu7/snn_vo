@@ -19,14 +19,14 @@
 int main() {
     std::cout << "Starting up..." << std::endl;
     
-    RMSPropOptimizer<14> optimizer(0.0005f, 0.99f);
-    // GradientDescentOptimizer<14> optimizer(0.0001f);
+    RMSPropOptimizer<14> optimizer(0.005f, 0.95f);
+    // GradientDescentOptimizer<14> optimizer(0.00005f);
 
     NeuralNetworkPopulationHandler<200> populationHandler(14, 1.5f, 0.1f, 1.0f, 1.0f, 1.0f, 1.0f);
     
     const auto tickStart = std::chrono::high_resolution_clock::now();
     
-    for (int generation = 0; generation < 1000; ++generation) {
+    for (int generation = 0; generation < 80; ++generation) {
         populationHandler.InitializePopulation();
         populationHandler.ExecutePopulation(optimizer);
     }
@@ -34,6 +34,16 @@ int main() {
     const auto tickEnd = std::chrono::high_resolution_clock::now();
     const auto tickDuration = std::chrono::duration_cast<std::chrono::microseconds>(tickEnd - tickStart);
     std::cout << "Time: " << tickDuration.count() << " microseconds" << std::endl;
+
+    populationHandler.PrintAverageNetwork();
+
+    /* Test run found network */
+    std::cout << "------------ Test run of mean network ------------\n";
+    auto [membraneThresholds, decayRates, spikeStrengths] = populationHandler.GetAverageParameters();
+
+    NeuralNetworkTestExecutor testExecutor(membraneThresholds, decayRates, spikeStrengths);
+    testExecutor.SetUpNetwork(true);
+    testExecutor.Execute(true);
 
     return 0;
 }

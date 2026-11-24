@@ -84,7 +84,7 @@ class NeuralNetworkPopulationHandler
             {
                 auto populationLoss = population[i].Execute();
                 auto membraneRegularizationLoss = population[i].GetMembraneThresholdRegularizationLoss();
-                totalPopulationLoss += populationLoss + 10.0f*membraneRegularizationLoss;
+                totalPopulationLoss += populationLoss + 1.0f*membraneRegularizationLoss;
 
                 for(size_t j = 0; j < membraneThresholdMus.size(); ++j)
                 {
@@ -98,7 +98,7 @@ class NeuralNetworkPopulationHandler
             }
 
             totalPopulationLoss /= static_cast<float>(PopulationSize);
-            int discreteLoss = static_cast<int>(totalPopulationLoss); // Convert to int
+            long discreteLoss = static_cast<long>(totalPopulationLoss); // Convert to int
             std::cout << std::string(discreteLoss, ' ') << "* " << totalPopulationLoss << std::endl;
 
             /* Normalize gradients with population size */
@@ -116,6 +116,35 @@ class NeuralNetworkPopulationHandler
                 membraneThresholdMus, membraneThresholdSigmas, membraneMuGradient, membraneSigmaGradient,
                 decayRateMus, decayRateSigmas, decayRateMuGradient, decayRateSigmaGradient,
                 spikeStrengthMus, spikeStrengthSigmas, spikeStrengthMuGradient, spikeStrengthSigmaGradient);
+        }
+
+        void PrintAverageNetwork() const 
+        {
+            std::cout << "Membrane thresholds: {";
+            for(size_t i{0}; i < membraneThresholdMus.size() - 1; ++i)
+            {
+                std::cout << membraneThresholdMus[i] << ", ";
+            }
+            std::cout << membraneThresholdMus.back() << "}\n";
+
+            std::cout << "Decay rates: {";
+            for(size_t i{0}; i < decayRateMus.size() - 1; ++i)
+            {
+                std::cout << decayRateMus[i] << ", ";
+            }
+            std::cout << decayRateMus.back() << "}\n";
+
+            std::cout << "Spike strengths: {";
+            for(size_t i{0}; i < spikeStrengthMus.size() - 1; ++i)
+            {
+                std::cout << spikeStrengthMus[i] << ", ";
+            }
+            std::cout << spikeStrengthMus.back() << "}\n";
+        }
+
+        std::tuple<std::vector<float>, std::vector<float>, std::vector<float>> GetAverageParameters() const
+        {
+            return {membraneThresholdMus, decayRateMus, spikeStrengthMus};
         }
 
     private:

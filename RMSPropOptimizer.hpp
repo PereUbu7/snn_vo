@@ -49,6 +49,9 @@ class RMSPropOptimizer
 
             for(size_t j = 0; j < numberOfNeurons; ++j)
             {
+                /* Ensure membrane potentials remain positive */
+                if(membraneThresholdMus[j] < 0.00001f) membraneThresholdMus[j] = 0.00001f;
+
                 /* Ensure sigmas remain positive */
                 if(membraneThresholdSigmas[j] < 0.00001f) membraneThresholdSigmas[j] = 0.00001f;
                 if(decayRateSigmas[j] < 0.00001f) decayRateSigmas[j] = 0.00001f;

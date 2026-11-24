@@ -16,16 +16,16 @@ class NeuralNetwork
         spikeStrengths{spikeStrengths}
         {}
 
-        void SetUpConnections(int max_connections_per_neuron) {
-            InitNeurons();
+        void SetUpConnections(int max_connections_per_neuron, bool verbose = false) {
+            InitNeurons(verbose);
             SetUpInputConnections();
             SetUpReservoirConnections(max_connections_per_neuron);
             SetUpOutputConnections();
         }
 
-        void SetUpConnections(const std::vector<std::vector<int>>& inputConnections, const std::vector<std::vector<int>>& reservoirConnections, const std::vector<std::vector<int>>& outputConnections)
+        void SetUpConnections(const std::vector<std::vector<int>>& inputConnections, const std::vector<std::vector<int>>& reservoirConnections, const std::vector<std::vector<int>>& outputConnections, bool verbose = false)
         {
-            InitNeurons();
+            InitNeurons(verbose);
 
             for (int inputIndex = 0; inputIndex < numberOfInputs; ++inputIndex) {
                 for (int destination : inputConnections[inputIndex]) {
@@ -125,7 +125,7 @@ class NeuralNetwork
         std::vector<float> decayRates;  
         std::vector<float> spikeStrengths;
 
-        void InitNeurons()
+        void InitNeurons(bool verbose = false)
         {
             // std::cout << "|Input|Output|Reservoir|\n";
             for (int i = 0; i < numberOfInputs + numberOfOutputs + numberInReservoir; ++i)
@@ -149,14 +149,15 @@ class NeuralNetwork
                                              : "Input";
 
                 bool isOutputNeuron = neuronCount >= outputIndexStart && neuronCount < reservoirIndexStart;
+                bool isReservoirNeuron = neuronCount >= reservoirIndexStart;
                 
                 const int spaces = neuronCount;
 
-                std::function<void()> spikingCallback = /*[spaces, neuronIndex, neuronType]()
+                std::function<void()> spikingCallback = verbose && !isReservoirNeuron ? std::function<void()>([spaces, neuronIndex, neuronType]()
                 {
                     std::cout << std::string(spaces, ' ') << neuronIndex << "\t\t\t" << neuronType << " neuron spiked!\n";
                     // std::cout << "Neuron " << neuronIndex << " (" << neuronType << ") spiked!" << std::endl;
-                };*/ []{};
+                }) : std::function<void()>([]{});
 
                 neurons[neuronCount] = Neuron(membraneThresholds[neuronCount], decayRates[neuronCount], spikeStrengths[neuronCount], spikingCallback);
                 ++neuronCount;

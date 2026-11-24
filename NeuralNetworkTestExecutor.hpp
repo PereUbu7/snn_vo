@@ -4,13 +4,13 @@ class NeuralNetworkTestExecutor
         NeuralNetworkTestExecutor() {}
         NeuralNetworkTestExecutor(const std::vector<float>& membraneThresholds, const std::vector<float>& decayRates, const std::vector<float>& spikeStrengths)
             : membraneThresholds(membraneThresholds), decayRates(decayRates), spikeStrengths(spikeStrengths) {}
-        void SetUpNetwork()
+        void SetUpNetwork(bool verbose = false)
         {
             network = NeuralNetwork(2, 2, 10, membraneThresholds, decayRates, spikeStrengths);
-            network.SetUpConnections(inputNeuronConnections, reservoirNeuronConnections, outputNeuronConnections);
+            network.SetUpConnections(inputNeuronConnections, reservoirNeuronConnections, outputNeuronConnections, verbose);
         }
 
-        float Execute()
+        float Execute(bool verbose = false)
         {
             auto inputNeuron1 = network.GetInputNeuron(0);
             auto inputNeuron2 = network.GetInputNeuron(1);
@@ -25,6 +25,7 @@ class NeuralNetworkTestExecutor
 
             for (const auto& datapoint : sampledData)
             {
+                if(verbose) std::cout << "Executing datapoint\n";
                 for (const auto& timeStep : datapoint)
                 {
                     const auto& inputNeurons = std::get<0>(timeStep);
@@ -36,6 +37,9 @@ class NeuralNetworkTestExecutor
                     {
                         inputNeuron2->ReceiveSpike(1.0f);
                     }
+
+                    if(verbose) std::cout << "Tick\n";
+
                     network.Tick(0.01f);
 
                     auto neuron1Spiked = network.GetOutputNeuron(0)->HasSpiked() ? 1.0f : 0.0f;
