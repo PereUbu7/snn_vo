@@ -37,13 +37,13 @@ $$
 I can, from that first formula derive the update rule for $\mu$ and $\sigma$ to be:
 
 $$
-\frac{\partial\mathcal{N}}{\partial\mu} = \frac{1}{N}\displaystyle\sum{loss_i\frac{\epsilon_i}{\sigma^2}}
+\frac{\partial\mathcal{N}}{\partial\mu} = \frac{1}{N}\displaystyle\sum{f(x)_i\frac{\epsilon_i}{\sigma^2}}
 $$
 $$
-\frac{\partial\mathcal{N}}{\partial\sigma} = \frac{1}{N}\displaystyle\sum{loss_i(\frac{\epsilon_i^2}{\sigma^2} - 1)}
+\frac{\partial\mathcal{N}}{\partial\sigma} = \frac{1}{N}\displaystyle\sum{f(x)_i(\frac{\epsilon_i^2}{\sigma^2} - 1)}
 $$
 
-where $N$ is my population size and $\epsilon$ are my pertubations.
+where $N$ is my population size, $\epsilon$ are my pertubations and $f(x)$ are my losses.
 
 ### results
 Running this program yields the following terminal output:
