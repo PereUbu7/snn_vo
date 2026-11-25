@@ -2,12 +2,16 @@ class NeuralNetworkTestExecutor
 {
     public:
         NeuralNetworkTestExecutor() {}
-        NeuralNetworkTestExecutor(const std::vector<float>& membraneThresholds, const std::vector<float>& decayRates, const std::vector<float>& spikeStrengths)
-            : membraneThresholds(membraneThresholds), decayRates(decayRates), spikeStrengths(spikeStrengths) {}
+        NeuralNetworkTestExecutor(NeuralNetworkArchitectureDefinition networkDefinition, const std::vector<float>& membraneThresholds, const std::vector<float>& decayRates, const std::vector<float>& spikeStrengths)
+            : network{}, 
+            networkDefinition{networkDefinition}, 
+            membraneThresholds(membraneThresholds), 
+            decayRates(decayRates), 
+            spikeStrengths(spikeStrengths) {}
         void SetUpNetwork(bool verbose = false)
         {
-            network = NeuralNetwork(2, 2, 10, membraneThresholds, decayRates, spikeStrengths);
-            network.SetUpConnections(inputNeuronConnections, reservoirNeuronConnections, outputNeuronConnections, verbose);
+            network = NeuralNetwork(networkDefinition, membraneThresholds, decayRates, spikeStrengths);
+            network.SetUpConnections(verbose);
         }
 
         float Execute(bool verbose = false)
@@ -70,10 +74,7 @@ class NeuralNetworkTestExecutor
     private:
         /* Architecture hyperparameters */
         NeuralNetwork network;
-
-        std::vector<std::vector<int>> inputNeuronConnections = {{3, 7}, {7, 5}};
-        std::vector<std::vector<int>> reservoirNeuronConnections = {{3, 7, 5}, {4, 5, 9, 0}, {6, 5, 3, 7}, {5, 7, 6}, {1, 7, 2, 9}, {0, 2, 7}, {1}, {2, 5}, {4, 7}, {8, 2, 5}};
-        std::vector<std::vector<int>> outputNeuronConnections = {{3}, {8}};
+        NeuralNetworkArchitectureDefinition networkDefinition;
 
         /* Neuron parameters */
         std::vector<float> membraneThresholds;

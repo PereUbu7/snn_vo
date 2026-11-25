@@ -1,16 +1,26 @@
+#include "IterativeNeuron.hpp"
+
+struct NeuralNetworkArchitectureDefinition
+{
+    int numberOfInputs;
+    int numberOfOutputs;
+    int numberInReservoir;
+    std::vector<std::vector<int>> inputNeuronConnections;
+    std::vector<std::vector<int>> reservoirNeuronConnections;
+    std::vector<std::vector<int>> outputNeuronConnections;
+};
+
 class NeuralNetwork
 {
     public:
-        NeuralNetwork() : NeuralNetwork(0, 0, 0, {}, {}, {}) {} // Default constructor
-        NeuralNetwork(int numberOfInputs, int numberOfOutputs, int numberInReservoir,
+        NeuralNetwork() : NeuralNetwork({0, 0, 0}, {}, {}, {}) {} // Default constructor
+        NeuralNetwork(NeuralNetworkArchitectureDefinition architectureDefinition,
         const std::vector<float>& membraneThresholds, const std::vector<float>& decayRates, const std::vector<float>& spikeStrengths
         ) :
-        numberOfInputs{numberOfInputs}, 
-        numberOfOutputs{numberOfOutputs}, 
-        numberInReservoir{numberInReservoir},
+        architectureDefinition{architectureDefinition},
         inputIndexStart{0},
-        outputIndexStart{numberOfInputs},
-        reservoirIndexStart{numberOfInputs + numberOfOutputs},
+        outputIndexStart{architectureDefinition.numberOfInputs},
+        reservoirIndexStart{architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs},
         membraneThresholds{membraneThresholds},
         decayRates{decayRates},
         spikeStrengths{spikeStrengths}
@@ -23,24 +33,24 @@ class NeuralNetwork
             SetUpOutputConnections();
         }
 
-        void SetUpConnections(const std::vector<std::vector<int>>& inputConnections, const std::vector<std::vector<int>>& reservoirConnections, const std::vector<std::vector<int>>& outputConnections, bool verbose = false)
+        void SetUpConnections(bool verbose = false)
         {
             InitNeurons(verbose);
 
-            for (int inputIndex = 0; inputIndex < numberOfInputs; ++inputIndex) {
-                for (int destination : inputConnections[inputIndex]) {
+            for (int inputIndex = 0; inputIndex < architectureDefinition.numberOfInputs; ++inputIndex) {
+                for (int destination : architectureDefinition.inputNeuronConnections[inputIndex]) {
                     neurons[destination + reservoirIndexStart].AddSynapticInput(&neurons[inputIndex + inputIndexStart]);
                 }
             }
 
-            for (int reservoirIndex = 0; reservoirIndex < numberInReservoir; ++reservoirIndex) {
-                for (int destination : reservoirConnections[reservoirIndex]) {
+            for (int reservoirIndex = 0; reservoirIndex < architectureDefinition.numberInReservoir; ++reservoirIndex) {
+                for (int destination : architectureDefinition.reservoirNeuronConnections[reservoirIndex]) {
                     neurons[destination + reservoirIndexStart].AddSynapticInput(&neurons[reservoirIndex + reservoirIndexStart]);
                 }
             }
 
-            for (int outputIndex = 0; outputIndex < numberOfOutputs; ++outputIndex) {
-                for (int source : outputConnections[outputIndex]) {
+            for (int outputIndex = 0; outputIndex < architectureDefinition.numberOfOutputs; ++outputIndex) {
+                for (int source : architectureDefinition.outputNeuronConnections[outputIndex]) {
                     neurons[outputIndex + outputIndexStart].AddSynapticInput(&neurons[source + reservoirIndexStart]);
                 }
             }
@@ -53,14 +63,14 @@ class NeuralNetwork
         }
 
         Neuron* GetInputNeuron(int index) {
-            if (index < 0 || index >= numberOfInputs) {
+            if (index < 0 || index >= architectureDefinition.numberOfInputs) {
                 throw std::out_of_range("Input neuron index out of range.");
             }
             return &neurons[inputIndexStart + index];
         }
 
         Neuron* GetOutputNeuron(int index) {
-            if (index < 0 || index >= numberOfOutputs) {
+            if (index < 0 || index >= architectureDefinition.numberOfOutputs) {
                 throw std::out_of_range("Output neuron index out of range.");
             }
             return &neurons[outputIndexStart + index];
@@ -68,25 +78,25 @@ class NeuralNetwork
 
         void PrintNetworkStructure() const {
             std::cout << "Neural Network Structure:" << std::endl;
-            std::cout << "Number of Inputs: " << numberOfInputs << std::endl;
-            std::cout << "Number of Outputs: " << numberOfOutputs << std::endl;
-            std::cout << "Number in Reservoir: " << numberInReservoir << std::endl;
+            std::cout << "Number of Inputs: " << architectureDefinition.numberOfInputs << std::endl;
+            std::cout << "Number of Outputs: " << architectureDefinition.numberOfOutputs << std::endl;
+            std::cout << "Number in Reservoir: " << architectureDefinition.numberInReservoir << std::endl;
             std::cout << "Total Neurons: " << neuronCount << std::endl;
             std::cout << "Connections:" << std::endl;
-            std::cout << "Input Neurons (" << inputIndexStart << " to " << inputIndexStart + numberOfInputs - 1 << ")" << std::endl;
-            for (int i = inputIndexStart; i < inputIndexStart + numberOfInputs; ++i) {
+            std::cout << "Input Neurons (" << inputIndexStart << " to " << inputIndexStart + architectureDefinition.numberOfInputs - 1 << ")" << std::endl;
+            for (int i = inputIndexStart; i < inputIndexStart + architectureDefinition.numberOfInputs; ++i) {
                 std::cout << "  Neuron " << i - inputIndexStart << " connects to: ";
                 for (const auto& dest : neurons[i].GetDestinationNeurons()) {
                     std::cout << dest - &neurons[0] - reservoirIndexStart << " "; // Print index of destination neuron
                 }
                 std::cout << std::endl;
             }
-            std::cout << "Reservoir Neurons (" << reservoirIndexStart << " to " << reservoirIndexStart + numberInReservoir - 1 << ")" << std::endl;
-            for (int i = reservoirIndexStart; i < reservoirIndexStart + numberInReservoir; ++i) {
+            std::cout << "Reservoir Neurons (" << reservoirIndexStart << " to " << reservoirIndexStart + architectureDefinition.numberInReservoir - 1 << ")" << std::endl;
+            for (int i = reservoirIndexStart; i < reservoirIndexStart + architectureDefinition.numberInReservoir; ++i) {
                 std::cout << "  Neuron " << i - reservoirIndexStart << " connects to: ";
                 for (const auto& dest : neurons[i].GetDestinationNeurons()) {
                     auto destinationIndex = dest - &neurons[0];
-                    if(destinationIndex >= reservoirIndexStart && destinationIndex < reservoirIndexStart + numberInReservoir) {
+                    if(destinationIndex >= reservoirIndexStart && destinationIndex < reservoirIndexStart + architectureDefinition.numberInReservoir) {
                         std::cout << destinationIndex - reservoirIndexStart << " "; // Print index of destination neuron
                     }
                     else {
@@ -95,12 +105,12 @@ class NeuralNetwork
                 }
                 std::cout << std::endl;
             }
-            std::cout << "Output Neurons (" << outputIndexStart << " to " << outputIndexStart + numberOfOutputs - 1 << ")" << std::endl;
-            for (int i = outputIndexStart; i < outputIndexStart + numberOfOutputs; ++i) {
+            std::cout << "Output Neurons (" << outputIndexStart << " to " << outputIndexStart + architectureDefinition.numberOfOutputs - 1 << ")" << std::endl;
+            for (int i = outputIndexStart; i < outputIndexStart + architectureDefinition.numberOfOutputs; ++i) {
                 std::cout << "  Neuron " << i - outputIndexStart << " receives input from: ";
                 for (const auto& dest : neurons[i].GetSourceNeurons()) {
                     auto sourceIndex = dest - &neurons[0];
-                    if(sourceIndex >= reservoirIndexStart && sourceIndex < reservoirIndexStart + numberInReservoir) {
+                    if(sourceIndex >= reservoirIndexStart && sourceIndex < reservoirIndexStart + architectureDefinition.numberInReservoir) {
                         std::cout << sourceIndex - reservoirIndexStart << " "; // Print index of source neuron
                     }
                     else {
@@ -113,10 +123,8 @@ class NeuralNetwork
 
     private:
         Neuron neurons[100]; // Array to hold references to neurons
+        NeuralNetworkArchitectureDefinition architectureDefinition;
         int neuronCount = 0; // Count of neurons
-        int numberOfInputs;
-        int numberOfOutputs;
-        int numberInReservoir;
         int inputIndexStart = 0;
         int outputIndexStart = 0;
         int reservoirIndexStart = 0;
@@ -128,7 +136,7 @@ class NeuralNetwork
         void InitNeurons(bool verbose = false)
         {
             // std::cout << "|Input|Output|Reservoir|\n";
-            for (int i = 0; i < numberOfInputs + numberOfOutputs + numberInReservoir; ++i)
+            for (int i = 0; i < architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs + architectureDefinition.numberInReservoir; ++i)
             {
                 if (i > 99)
                 {
@@ -159,24 +167,24 @@ class NeuralNetwork
                     // std::cout << "Neuron " << neuronIndex << " (" << neuronType << ") spiked!" << std::endl;
                 }) : std::function<void()>([]{});
 
-                neurons[neuronCount] = Neuron(membraneThresholds[neuronCount], decayRates[neuronCount], spikeStrengths[neuronCount], spikingCallback);
+                neurons[neuronCount] = IterativeNeuron(membraneThresholds[neuronCount], decayRates[neuronCount], spikeStrengths[neuronCount], spikingCallback);
                 ++neuronCount;
             }
         }
 
         void SetUpInputConnections()
         {
-            if (numberInReservoir == 0) {
+            if (architectureDefinition.numberInReservoir == 0) {
                 return;
             }
 
             std::random_device randomDevice;
             std::mt19937 randomEngine(randomDevice());
             std::uniform_int_distribution<int> reservoirDistribution(
-                numberOfInputs + numberOfOutputs,
-                numberOfInputs + numberOfOutputs + numberInReservoir - 1);
+                architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs,
+                architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs + architectureDefinition.numberInReservoir - 1);
 
-            for (int inputIndex = 0; inputIndex < numberOfInputs; ++inputIndex) {
+            for (int inputIndex = 0; inputIndex < architectureDefinition.numberOfInputs; ++inputIndex) {
                 const int reservoirIndex = reservoirDistribution(randomEngine);
                 neurons[reservoirIndex].AddSynapticInput(&neurons[inputIndex + inputIndexStart]);
             }
@@ -184,7 +192,7 @@ class NeuralNetwork
 
         void SetUpReservoirConnections(int max_connections_per_neuron)
         {
-            if (numberInReservoir == 0) {
+            if (architectureDefinition.numberInReservoir == 0) {
                 return;
             }
             if (max_connections_per_neuron < 1) {
@@ -193,11 +201,11 @@ class NeuralNetwork
 
             std::random_device randomDevice;
             std::mt19937 randomEngine(randomDevice());
-            const int reservoirStart = numberOfInputs + numberOfOutputs;
-            for (int source = 0; source < numberInReservoir; ++source) {
+            const int reservoirStart = architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs;
+            for (int source = 0; source < architectureDefinition.numberInReservoir; ++source) {
                 std::vector<int> possibleDestinations;
-                possibleDestinations.reserve(numberInReservoir);
-                for (int destination = 0; destination < numberInReservoir; ++destination) {
+                possibleDestinations.reserve(architectureDefinition.numberInReservoir);
+                for (int destination = 0; destination < architectureDefinition.numberInReservoir; ++destination) {
                     if (destination != source) {
                         possibleDestinations.push_back(destination);
                     }
@@ -222,17 +230,17 @@ class NeuralNetwork
 
         void SetUpOutputConnections()
         {
-            if (numberInReservoir == 0) {
+            if (architectureDefinition.numberInReservoir == 0) {
                 return;
             }
 
             std::random_device randomDevice;
             std::mt19937 randomEngine(randomDevice());
             std::uniform_int_distribution<int> reservoirDistribution(
-                numberOfInputs + numberOfOutputs,
-                numberOfInputs + numberOfOutputs + numberInReservoir - 1);
+                architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs,
+                architectureDefinition.numberOfInputs + architectureDefinition.numberOfOutputs + architectureDefinition.numberInReservoir - 1);
 
-            for (int outputIndex = 0; outputIndex < numberOfOutputs; ++outputIndex) {
+            for (int outputIndex = 0; outputIndex < architectureDefinition.numberOfOutputs; ++outputIndex) {
                 const int reservoirIndex = reservoirDistribution(randomEngine);
                 neurons[outputIndex + outputIndexStart].AddSynapticInput(&neurons[reservoirIndex]);
             }

@@ -22,7 +22,17 @@ int main() {
     RMSPropOptimizer<14> optimizer(0.005f, 0.95f);
     // GradientDescentOptimizer<14> optimizer(0.00005f);
 
-    NeuralNetworkPopulationHandler<200> populationHandler(14, 1.5f, 0.1f, 1.0f, 1.0f, 1.0f, 1.0f);
+    NeuralNetworkArchitectureDefinition arcDef 
+    {
+        .numberOfInputs = 2, 
+        .numberOfOutputs = 2,
+        .numberInReservoir = 10,
+        .inputNeuronConnections = {{3, 7}, {7, 5}},
+        .reservoirNeuronConnections = {{3, 7, 5}, {4, 5, 9, 0}, {6, 5, 3, 7}, {5, 7, 6}, {1, 7, 2, 9}, {0, 2, 7}, {1}, {2, 5}, {4, 7}, {8, 2, 5}},
+        .outputNeuronConnections = {{3}, {8}}
+    };
+
+    NeuralNetworkPopulationHandler<200> populationHandler(arcDef, 14, 1.5f, 0.1f, 1.0f, 1.0f, 1.0f, 1.0f);
     
     const auto tickStart = std::chrono::high_resolution_clock::now();
     
@@ -41,7 +51,7 @@ int main() {
     std::cout << "------------ Test run of mean network ------------\n";
     auto [membraneThresholds, decayRates, spikeStrengths] = populationHandler.GetAverageParameters();
 
-    NeuralNetworkTestExecutor testExecutor(membraneThresholds, decayRates, spikeStrengths);
+    NeuralNetworkTestExecutor testExecutor(arcDef, membraneThresholds, decayRates, spikeStrengths);
     testExecutor.SetUpNetwork(true);
     testExecutor.Execute(true);
 

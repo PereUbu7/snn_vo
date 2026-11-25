@@ -2,8 +2,11 @@ template <size_t PopulationSize>
 class NeuralNetworkPopulationHandler
 {
     public:
-        NeuralNetworkPopulationHandler(int numberOfNeurons, float membraneThreshold, float decayRate, float spikeStrength, float membraneThresholdSigma, float decayRateSigma, float spikeStrengthSigma)
-            : numberOfNeurons{numberOfNeurons}, population(PopulationSize), membraneThresholdMuInnerGradients(PopulationSize),
+        NeuralNetworkPopulationHandler(NeuralNetworkArchitectureDefinition architectureDefinition, int numberOfNeurons, float membraneThreshold, float decayRate, float spikeStrength, float membraneThresholdSigma, float decayRateSigma, float spikeStrengthSigma)
+            : architectureDefinition{architectureDefinition}, 
+            numberOfNeurons{numberOfNeurons}, 
+            population(PopulationSize), 
+            membraneThresholdMuInnerGradients(PopulationSize),
             decayRateMuInnerGradients(PopulationSize),
             spikeStrengthMuInnerGradients(PopulationSize),
             membraneThresholdSigmaInnerGradients(PopulationSize),
@@ -64,7 +67,7 @@ class NeuralNetworkPopulationHandler
 
 
 
-                population[i] = NeuralNetworkTestExecutor{populationMembraneThresholds, populationDecayRates, populationSpikeStrength};
+                population[i] = NeuralNetworkTestExecutor{architectureDefinition, populationMembraneThresholds, populationDecayRates, populationSpikeStrength};
                 population[i].SetUpNetwork();
             }
         }
@@ -149,6 +152,7 @@ class NeuralNetworkPopulationHandler
 
     private:
         int numberOfNeurons;
+        NeuralNetworkArchitectureDefinition architectureDefinition;
         std::vector<NeuralNetworkTestExecutor> population;
 
         std::vector<std::vector<float>> membraneThresholdMuInnerGradients;
